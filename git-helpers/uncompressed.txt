@@ -3041,6 +3041,9 @@
 ./prnt/ps/hp-laserjet_pro_4002-ps.ppd
 ./prnt/ps/hp-laserjet_pro_4003-ps.ppd
 ./prnt/ps/hp-laserjet_pro_4004-ps.ppd
+./prnt/ps/hp-laserjet_pro_4006-ps.ppd
+./prnt/ps/hp-laserjet_pro_4007-ps.ppd
+./prnt/ps/hp-laserjet_pro_4008-ps.ppd
 ./prnt/ps/hp-laserjet_pro_m118-m119-ps.ppd
 ./prnt/ps/hp-laserjet_pro_m148f-m149f-ps.ppd
 ./prnt/ps/hp-laserjet_pro_m148-m149-ps.ppd
@@ -3062,6 +3065,9 @@
 ./prnt/ps/hp-laserjet_pro_mfp_4102-ps.ppd
 ./prnt/ps/hp-laserjet_pro_mfp_4103-ps.ppd
 ./prnt/ps/hp-laserjet_pro_mfp_4104-ps.ppd
+./prnt/ps/hp-laserjet_pro_mfp_4112-ps.ppd
+./prnt/ps/hp-laserjet_pro_mfp_4113-ps.ppd
+./prnt/ps/hp-laserjet_pro_mfp_4114-ps.ppd
 ./prnt/ps/hp-laserjet_pro_mfp_m225_m226-ps.ppd
 ./prnt/ps/hp-laserjet_pro_mfp_m227-m231-ps.ppd
 ./prnt/ps/hp-laserjet_pro_mfp_m329-ps.ppd

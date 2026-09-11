@@ -215,7 +215,6 @@ f 0644 root root $ppd/HP prnt/pdf/*.ppd.gz
 @epm_full@f 644 root root $home/fax/ledmsoapfax.py fax/ledmsoapfax.py
 @epm_full@f 644 root root $home/fax/cdmfax.py fax/cdmfax.py
 @epm_full@f 755 root root $home/fab.py fab.py
-@epm_full@f 755 root root $home/pkservice.py pkservice.py
 @epm_full@f 755 root root $home/hpssd.py hpssd.py
 @epm_full@d 775 root root $home/base -
 @epm_full@f 644 root root $home/base base/*.py
@@ -342,7 +341,6 @@ f 0644 root root $ppd/HP prnt/pdf/*.ppd.gz
 @epm_full@l 755 root root $bindir/hp-firmware ../share/hplip/firmware.py
 @epm_full@l 755 root root $bindir/hp-makeuri ../share/hplip/makeuri.py
 @epm_full@l 755 root root $bindir/hp-fab ../share/hplip/fab.py
-@epm_full@l 755 root root $bindir/hp-pkservice ../share/hplip/pkservice.py
 @epm_full@l 755 root root $bindir/hp-align ../share/hplip/align.py
 @epm_full@l 755 root root $bindir/hp-print ../share/hplip/print.py
 @epm_full@l 755 root root $bindir/hp-setup ../share/hplip/setup.py
