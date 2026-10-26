@@ -10,7 +10,7 @@ import tempfile
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", default="3.26.6+horizontal1")
+    parser.add_argument("--version", default="3.26.6+horizontal2")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     binary = root / "hpcups"
@@ -34,6 +34,7 @@ def main():
         ppd = re.sub(r'^\*PCFileName:.*$', '*PCFileName: "hp37cal.ppd"', ppd, flags=re.M)
         ppd += '\n*% Optional native horizontal calibration, in millimetres.\n'
         ppd += '*HPHorizontalOffset: "0"\n'
+        ppd += '*HPLegacyPCL3GUI2: "1"\n'
         target = staging / "usr/share/ppd/hpcups-calibrated/hp-deskjet_3700_series.ppd"
         target.parent.mkdir(parents=True)
         target.write_text(ppd)
@@ -57,7 +58,7 @@ def main():
             "libstdc++6, libgcc-s1, zlib1g\n"
             "Homepage: https://github.com/m43i/hplip/tree/fix/deskjet-horizontal-alignment\n"
             "Description: HPLIP raster driver with native horizontal calibration\n"
-            " Optional PCL3GUI2 cursor calibration without resizing raster data.\n"
+            " Optional PCL3GUI2 pixel translation without resizing the page.\n"
             " Installs separately from the distribution hpcups driver.\n"
         )
         subprocess.run(["dpkg-deb", "--root-owner-group", "--build", str(staging), str(package)], check=True)

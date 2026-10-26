@@ -403,6 +403,15 @@ DRIVER_ERROR HPCupsFilter::startPage (cups_page_header2_t *cups_header)
         m_JA.horizontal_offset_mm = offset;
     }
 
+    attr = ppdFindAttr(m_ppd, "HPLegacyPCL3GUI2", NULL);
+    if (attr && attr->value) {
+        if (strcmp(attr->value, "0") && strcmp(attr->value, "1")) {
+            fputs("ERROR: HPLegacyPCL3GUI2 must be 0 or 1.\n", stderr);
+            return SYSTEM_ERROR;
+        }
+        m_JA.legacy_pcl3gui2 = !strcmp(attr->value, "1");
+    }
+
     if(cups_header->PageSize[0] > 612) // Check for B size paper. B Size paper has width > 8.5 inch (612 points)
     {
         //Check if HPMechOffsetBSize attribute is defined. If it is defined then use this offset value.
@@ -784,6 +793,29 @@ int HPCupsFilter::processRasterData(cups_raster_t *cups_raster)
             kRaster = NULL;
         }
 
+        long long shift = 0;
+        size_t row_bytes = 0, shift_bytes = 0;
+        if (!strcmp(m_JA.printer_language, "pcl3gui2"))
+            shift = std::llround(m_JA.horizontal_offset_mm * cups_header.HWResolution[0] / 25.4);
+        if (shift) {
+            bool rgb = cups_header.cupsColorSpace == CUPS_CSPACE_RGB;
+            bool rgbw = cups_header.cupsColorSpace == CUPS_CSPACE_RGBW;
+            unsigned int channels = rgbw ? 4 : 3;
+            row_bytes = static_cast<size_t>(cups_header.cupsWidth) * channels;
+            if ((!rgb && !rgbw) || cups_header.cupsBitsPerColor != 8 ||
+                cups_header.cupsBitsPerPixel != channels * 8 ||
+                cups_header.cupsColorOrder != CUPS_ORDER_CHUNKED ||
+                row_bytes > cups_header.cupsBytesPerLine) {
+                fputs("ERROR: Horizontal calibration requires chunked 8-bit RGB or RGBW raster.\n", stderr);
+                ret_status = JOB_CANCELED;
+                break;
+            }
+            unsigned long long columns = shift < 0 ? -shift : shift;
+            if (columns > cups_header.cupsWidth)
+                columns = cups_header.cupsWidth;
+            shift_bytes = columns * channels;
+        }
+
         BYTE    *color_raster = NULL;
         BYTE    *black_raster = NULL;
 
@@ -834,6 +866,18 @@ int HPCupsFilter::processRasterData(cups_raster_t *cups_raster)
         bool is_ljmono = strcmp(m_JA.printer_language, "ljmono");
         for (int y = 0; y < (int) cups_header.cupsHeight; y++) {
             cupsRasterReadPixels (cups_raster, m_pPrinterBuffer, cups_header.cupsBytesPerLine);
+            if (shift_bytes) {
+                // Translate whole pixels inside the existing printable width.
+                // This works independently of firmware PCL cursor semantics.
+                if (shift > 0) {
+                    memmove(m_pPrinterBuffer + shift_bytes, m_pPrinterBuffer, row_bytes - shift_bytes);
+                    memset(m_pPrinterBuffer, 0xFF, shift_bytes);
+                }
+                else {
+                    memmove(m_pPrinterBuffer, m_pPrinterBuffer + shift_bytes, row_bytes - shift_bytes);
+                    memset(m_pPrinterBuffer + row_bytes - shift_bytes, 0xFF, shift_bytes);
+                }
+            }
             color_raster = rgbRaster;
             black_raster = kRaster;
             #ifndef DISABLE_IMAGEPROCESSOR 

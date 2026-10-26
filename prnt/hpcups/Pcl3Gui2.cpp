@@ -34,7 +34,6 @@
 #include "Mode10.h"
 #include "Mode9.h"
 #include "PrinterCommands.h"
-#include <cmath>
 
 Pcl3Gui2::Pcl3Gui2() : Encapsulator()
 {
@@ -54,6 +53,11 @@ DRIVER_ERROR Pcl3Gui2::Configure(Pipeline **pipeline)
     Pipeline    *head;
     unsigned int width;
     head = *pipeline;
+    if (m_pJA->legacy_pcl3gui2) {
+        // Preserve the RGB + K pipeline used by older DeskJet drivers.
+        crd_type = eCrd_both;
+        m_run_ernie_filter = false;
+    }
     if (m_pJA->e_duplex_mode != DUPLEXMODE_NONE ||
         m_pJA->total_pages < 3) {
 	    speed_mech_enabled = false;
@@ -237,12 +241,6 @@ DRIVER_ERROR Pcl3Gui2::StartPage(JobAttributes *pJA)
             addToHeader(speed_mech_end, sizeof (speed_mech_end));
         }
     }
-
-    // PCL cursor units follow the unit-of-measure command above, not a fixed
-    // DPI. Form feed can preserve X, so reset before applying each page's offset.
-    long offset = std::lround(m_pJA->horizontal_offset_mm * unit_of_measure / 25.4);
-    if (offset)
-        addToHeader("\x1b*p0X\x1b*p%+ldX", offset);
 
     addToHeader((const BYTE *) grafStart, sizeof(grafStart));
 

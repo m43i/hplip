@@ -12,6 +12,7 @@ int main(int argc, char **argv)
     unsigned int resolution = argc > 1 ? atoi(argv[1]) : 600;
     unsigned int pages = argc > 2 ? atoi(argv[2]) : 1;
     int gray = argc > 3 && !strcmp(argv[3], "gray");
+    int shift = argc > 4 ? atoi(argv[4]) : 0;
     cups_raster_t *raster = cupsRasterOpen(1, CUPS_RASTER_WRITE);
     if (!raster) return 1;
     memset(&header, 0, sizeof(header));
@@ -41,15 +42,21 @@ int main(int argc, char **argv)
     header.cupsBytesPerLine = header.cupsWidth * header.cupsNumColors;
     header.cupsColorOrder = CUPS_ORDER_CHUNKED;
     header.cupsColorSpace = gray ? CUPS_CSPACE_RGB : CUPS_CSPACE_RGBW;
+    if (argc > 3 && !strcmp(argv[3], "cmyk"))
+        header.cupsColorSpace = CUPS_CSPACE_CMYK;
     header.cupsRowStep = gray ? 2 : 0;
     for (page = 0; page < pages; page++) {
         if (!cupsRasterWriteHeader2(raster, &header)) return 2;
         for (line = 0; line < header.cupsHeight; line++) {
             memset(row, 255, sizeof(row));
-            for (x = 32; x < 224; x++) {
-                row[x * header.cupsNumColors] = 40 + line * 10;
+            for (x = 0; x < header.cupsWidth; x++) {
+                int source_x = (int)x - shift;
+                if (source_x < 32 || source_x >= 224 || line == 4) continue;
+                row[x * header.cupsNumColors] = 40 + line * 10 + page;
                 row[x * header.cupsNumColors + 1] = gray ? 40 + line * 10 : 100;
                 row[x * header.cupsNumColors + 2] = gray ? 40 + line * 10 : 180;
+                if (!gray && source_x >= 64 && source_x < 96)
+                    memset(row + x * 4, 0, 4);  /* Exercise the pure-black plane. */
             }
             if (cupsRasterWritePixels(raster, row, header.cupsBytesPerLine)
                 != header.cupsBytesPerLine) return 3;

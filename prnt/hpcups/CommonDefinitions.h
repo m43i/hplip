@@ -468,6 +468,7 @@ typedef struct JobAttributes_s
     int 	           args_duplex_mode;
     // Append calibration data so existing plugin-visible field offsets stay intact.
     double             horizontal_offset_mm;
+    bool               legacy_pcl3gui2;
 } JobAttributes;
 
 #endif // COMMON_DEFINITIONS_H
