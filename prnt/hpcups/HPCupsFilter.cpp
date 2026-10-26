@@ -40,6 +40,8 @@
 #include <sys/wait.h>
 #include <sys/utsname.h>
 #include <time.h>
+#include <cmath>
+#include <cctype>
 #include "utils.h"
 
 #define HP_FILE_VERSION_STR    "03.09.08.0"
@@ -381,6 +383,24 @@ DRIVER_ERROR HPCupsFilter::startPage (cups_page_header2_t *cups_header)
     if (((attr = ppdFindAttr(m_ppd, "HPMechOffset", NULL)) != NULL) &&
         (attr && attr->value != NULL)) {
         m_JA.mech_offset = atoi(attr->value);
+    }
+
+    // Optional physical calibration, independent of page size and raster scale.
+    m_JA.horizontal_offset_mm = 0.0;
+    attr = ppdFindAttr(m_ppd, "HPHorizontalOffset", NULL);
+    if (attr && attr->value) {
+        char *end;
+        double offset = strtod(attr->value, &end);
+        bool has_number = end != attr->value;
+        while (std::isspace(static_cast<unsigned char>(*end)))
+            end++;
+        if (!has_number || *end || !std::isfinite(offset) ||
+            offset < -20.0 || offset > 20.0) {
+            fprintf(stderr, "ERROR: HPHorizontalOffset must be a finite number "
+                            "from -20 to 20 millimetres.\n");
+            return SYSTEM_ERROR;
+        }
+        m_JA.horizontal_offset_mm = offset;
     }
 
     if(cups_header->PageSize[0] > 612) // Check for B size paper. B Size paper has width > 8.5 inch (612 points)

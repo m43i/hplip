@@ -466,6 +466,8 @@ typedef struct JobAttributes_s
     int                pre_process_raster;
     int                HPSPDClass;
     int 	           args_duplex_mode;
+    // Append calibration data so existing plugin-visible field offsets stay intact.
+    double             horizontal_offset_mm;
 } JobAttributes;
 
 #endif // COMMON_DEFINITIONS_H
